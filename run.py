@@ -294,19 +294,26 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
         base_sg=base_sg,
         ont_g=ont_g,
         inference_method="none",
-        runs=10,
+        runs=0,
         verbose_iter=True,
     )
 
 
 
 if __name__ == "__main__":
-    run_experiment(
-        dataset_name="EnDe-Lite50",
-        dataset_uri="source/Datasets/EnDe-Lite50(without_Ontology).ttl",
-        shapes_graph_uri="source/ShapesGraphs/Shape_30.ttl",
-        ontology_uri="source/dbpedia_ontology.owl",
-    )
+    # run_experiment(
+    #     dataset_name="test_violations",
+    #     dataset_uri="test_violations/data.ttl",
+    #     shapes_graph_uri="test_violations/shapes.ttl",
+    #     ontology_uri="test_violations/ont.owl",
+    # )
+
+    # run_experiment(
+    #     dataset_name="EnDe-Lite50",
+    #     dataset_uri="source/Datasets/EnDe-Lite50(without_Ontology).ttl",
+    #     shapes_graph_uri="source/ShapesGraphs/Shape_30.ttl",
+    #     ontology_uri="source/dbpedia_ontology.owl",
+    # )
 
     run_experiment(
         dataset_name="EnDe-Lite100",
@@ -315,9 +322,9 @@ if __name__ == "__main__":
         ontology_uri="source/dbpedia_ontology.owl",
     )
 
-    run_experiment(
-        dataset_name="EnDe-Lite1000",
-        dataset_uri="source/Datasets/EnDe-Lite1000(without_Ontology).ttl",
-        shapes_graph_uri="source/ShapesGraphs/Shape_30.ttl",
-        ontology_uri="source/dbpedia_ontology.owl",
-    )
+    # run_experiment(
+    #     dataset_name="EnDe-Lite1000",
+    #     dataset_uri="source/Datasets/EnDe-Lite1000(without_Ontology).ttl",
+    #     shapes_graph_uri="source/ShapesGraphs/Shape_30.ttl",
+    #     ontology_uri="source/dbpedia_ontology.owl",
+    # )

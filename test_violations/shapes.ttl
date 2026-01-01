@@ -1,0 +1,11 @@
+@prefix ex:  <http://example.org/> .
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:ProfTypeAllowedOnlyProfessorShape
+  a sh:NodeShape ;
+  sh:targetClass ex:Professor ;
+  sh:property [
+    sh:path rdf:type ;
+    sh:in ( ex:Professor ) ;
+  ] .

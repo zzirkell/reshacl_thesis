@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:ex="http://example.org/">
+
+  <owl:Ontology rdf:about="http://example.org/ont"/>
+
+  <owl:Class rdf:about="http://example.org/Professor"/>
+  <owl:Class rdf:about="http://example.org/Person"/>
+
+  <!-- Key: equivalentClass makes old merge_target_classes copy rdf:type -->
+  <owl:Class rdf:about="http://example.org/Professor">
+    <owl:equivalentClass rdf:resource="http://example.org/Person"/>
+  </owl:Class>
+
+</rdf:RDF>
