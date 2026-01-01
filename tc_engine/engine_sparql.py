@@ -119,7 +119,6 @@ def main() -> None:
     shapes_graph = Graph()
     shapes_graph.parse(shapes_path, format="turtle")
 
-    # You said you already have them; this is the minimal seed extraction.
     SH = Namespace("http://www.w3.org/ns/shacl#")
     seed_target_classes: set[URIRef] = {
         cls for _, _, cls in shapes_graph.triples((None, SH.targetClass, None))
@@ -132,11 +131,9 @@ def main() -> None:
         seed_target_classes=seed_target_classes,
     )
 
-    # Outputs: rewritten shapes and the final expanded target class set
     print(f"Seed targets: {len(seed_target_classes)}")
     print(f"Expanded targets (union of closures): {len(expanded_global)}")
 
-    # If you want to save the rewritten shapes:
     rewritten.serialize("Shape_30.expanded.ttl", format="turtle")
     print("Wrote: Shape_30.expanded.ttl")
 
