@@ -47,7 +47,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT ?seed ?c WHERE {
   VALUES ?seed { %s }
 
-  ?seed ( owl:equivalentClass | ^owl:equivalentClass
+  ?seed ( owl:equivalentClass | ^owl:equivalentClass        
         | owl:sameAs         | ^owl:sameAs
         | ^rdfs:subClassOf
         )* ?c .

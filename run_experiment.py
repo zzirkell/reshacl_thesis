@@ -271,35 +271,35 @@ def run_experiment_nv(dataset_name, dataset_uri, shapes_graph_uri, method='pysha
     elif method == 'reshacl_no_tc':
         run_reshacl_no_tc_nv(dataset_name, g, sg, 'none', ontology)
 
-if __name__ == "__main__":
-    # run_experiment(dataset_name="EnDe-Lite100",
-    #                dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
-    #                shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
-    #                method='reshacl_no_tc',
-    #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
-    # run_experiment("EnDe-Lite100",
-    #                "reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
-    #                "reshacl_thesis/source/shapesg/Shape_30.ttl",
-    #                method='reshacl',
-    #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
-    # run_experiment(dataset_name="EnDe-Lite1000",
-    #                dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite1000(without_Ontology).ttl",
-    #                shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
-    #                method='reshacl_no_tc',
-    #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
-    # run_experiment("EnDe-Lite1000",
-    #                "reshacl_thesis/source/datasets/EnDe-Lite1000(without_Ontology).ttl",
-    #                "reshacl_thesis/source/shapesg/Shape_30.ttl",
-    #                method='reshacl',
-    #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
-    run_experiment_nv(dataset_name="EnDe-Lite50",
-                   dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
-                   shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
-                   method='reshacl',
-                   ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
-    run_experiment_nv("EnDe-Lite50",
-                   "reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
-                   "reshacl_thesis/source/shapesg/Shape_30.ttl",
-                   method='reshacl',
-                   ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+# if __name__ == "__main__":
+#     # run_experiment(dataset_name="EnDe-Lite100",
+#     #                dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
+#     #                shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
+#     #                method='reshacl_no_tc',
+#     #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+#     # run_experiment("EnDe-Lite100",
+#     #                "reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
+#     #                "reshacl_thesis/source/shapesg/Shape_30.ttl",
+#     #                method='reshacl',
+#     #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+#     # run_experiment(dataset_name="EnDe-Lite1000",
+#     #                dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite1000(without_Ontology).ttl",
+#     #                shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
+#     #                method='reshacl_no_tc',
+#     #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+#     # run_experiment("EnDe-Lite1000",
+#     #                "reshacl_thesis/source/datasets/EnDe-Lite1000(without_Ontology).ttl",
+#     #                "reshacl_thesis/source/shapesg/Shape_30.ttl",
+#     #                method='reshacl',
+#     #                ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+#     run_experiment_nv(dataset_name="EnDe-Lite50",
+#                    dataset_uri="reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
+#                    shapes_graph_uri="reshacl_thesis/source/shapesg/Shape_30.ttl",
+#                    method='reshacl',
+#                    ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
+#     run_experiment_nv("EnDe-Lite50",
+#                    "reshacl_thesis/source/datasets/EnDe-Lite100(without_Ontology).ttl",
+#                    "reshacl_thesis/source/shapesg/Shape_30.ttl",
+#                    method='reshacl',
+#                    ontology="reshacl_thesis/source/datasets/dbpedia_ontology.owl")
 

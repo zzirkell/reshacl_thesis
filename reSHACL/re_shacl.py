@@ -684,14 +684,20 @@ def merged_graph(
                 continue
             fa_p.add(propertis)
     path_value.update(fa_p)
-    with timer_ns(timing, "tc_subclass_expand_ns"):
-        for tc in target_classes:
-            subc = vg.transitive_subjects(RDFS_subClassOf, tc)
-            for subclass in subc:
-                if subclass == tc:
-                    continue
+
+    t_sc0 = time.perf_counter_ns()
+
+    found_target_classes = set()
+    for tc in target_classes:
+        subc = vg.transitive_subjects(RDFS_subClassOf, tc)
+        for subclass in subc:
+            if subclass != tc:
                 found_target_classes.add(subclass)
-        target_classes.update(found_target_classes)
+    target_classes.update(found_target_classes)
+
+    t_sc1 = time.perf_counter_ns()
+    timing["tc_subclass_expand_only_ns"] = t_sc1 - t_sc0
+
     
     for path_ahead in shape_linked_target:
         for x in vg.objects(None, path_ahead):
@@ -709,10 +715,19 @@ def merged_graph(
        
             merge_same_focus(vg, same_nodes, focus_node, target_nodes, shapes, shape_g)  
             #check_com_dw(vg, target_classes)
-    
+
+    timing["tc_merge_only_ns"] = 0
+    timing["tc_merge_calls"] = 0
+
     while (not all_targetClasses_merged(vg, target_classes)) or (not all_samePath_merged(vg, path_value)):
-        with timer_ns(timing, "tc_merge_target_classes_ns"):
-            merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
+
+        t_m0 = time.perf_counter_ns()
+        merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
+        t_m1 = time.perf_counter_ns()
+
+        timing["tc_merge_only_ns"] += (t_m1 - t_m0)
+        timing["tc_merge_calls"] += 1
+
 
         target_range(vg, found_node_targets, same_nodes, target_classes)
         
@@ -756,7 +771,11 @@ def merged_graph(
     #     output_shapes = output_shapes + s.sg.graph
     
     # print("shape_g:",type(shape_g))
-        
+    timing["tc_old_only_ns"] = (
+    timing["tc_subclass_expand_only_ns"] + timing["tc_merge_only_ns"]
+)
+    timing["tc_only_ns"] = timing["tc_old_only_ns"]
+    
     return vg, same_nodes, shape_g, timing # output_shapes
          
 

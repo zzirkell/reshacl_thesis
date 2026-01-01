@@ -8,7 +8,7 @@ from rdflib.namespace import OWL, RDF, RDFS, SH
 from rdflib import Graph
 from pyshacl.shapes_graph import ShapesGraph
 
-from tc_engine.engine_rdflib import expand_target_classes_cached
+from tc_engine.engine_sparql import expand_target_classes_cached_sparql
 
 from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Set, Tuple, Union
 
@@ -536,17 +536,20 @@ def merge_same_focus(g, same_nodes, focus,  target_nodes, shapes, shacl_graph):
             
             
             
-def merged_graph_no_tc(
+def merged_graph_no_tc_sparql(
     data_graph: Union[GraphLike, str, bytes],
     ontology: Graph,
     shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
     data_graph_format: Optional[str] = None,
-    shacl_graph_format: Optional[str] = None
+    shacl_graph_format: Optional[str] = None,
     ):
     
     shapes, named_graphs, shape_graph = load_graph( data_graph, shacl_graph, data_graph_format,shacl_graph_format)    
 
-    shape_g = shape_graph.graph
+    shape_g = shape_graph.graph 
+    # print("shape_graph:",type(shape_graph))
+    # print("shape_graph.graph:",type(shape_graph.graph))
+    # print("shape_g:",type(shape_g))
     
     vg = named_graphs[0]
     timing: dict[str, int] = {}
@@ -611,7 +614,7 @@ def merged_graph_no_tc(
     timing = {}
 
     t_tc0 = time.perf_counter_ns()
-    shape_g, target_classes, _cache = expand_target_classes_cached(shape_g, ontology, target_classes)
+    shape_g, target_classes, _cache = expand_target_classes_cached_sparql(shape_g, ontology, target_classes)
     t_tc1 = time.perf_counter_ns()
 
     timing["tc_engine_only_ns"] = t_tc1 - t_tc0
