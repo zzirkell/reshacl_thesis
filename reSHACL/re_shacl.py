@@ -1,14 +1,11 @@
-from pyshacl import validate
-
 from .errors import FusionRuntimeError
 from pyshacl.pytypes import GraphLike
 import rdflib
 import time
 from rdflib.namespace import OWL, RDF, RDFS, SH
-from rdflib import Graph
 from pyshacl.shapes_graph import ShapesGraph
 
-from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Optional, Union
 
 from pyshacl.monkey import rdflib_bool_patch, rdflib_bool_unpatch
 from pyshacl.rdfutil import (
@@ -443,14 +440,7 @@ def merge_target_classes(
     found_node_targets,
     same_nodes,
     target_classes,
-    materialize_types: bool = True,   # <-- NEW FLAG
 ):
-    """
-    If materialize_types=False:
-      - We still rewrite equivalence links into subClassOf links (as your original does),
-        but we do NOT add new rdf:type triples to instances.
-      - This makes the pipeline closer to the engine approach (shape rewrite only).
-    """
 
     eq_targetClass = set()
     eq_targetNodes = set()
@@ -459,12 +449,11 @@ def merge_target_classes(
         while not sameClasses_merged(g, c):
             for c1 in g.subjects(OWL.equivalentClass, c):
                 eq_targetClass.add(c1)
-                if materialize_types:
-                    for s in g.subjects(RDF.type, c1):
-                        eq_targetNodes.add(s)
-                        g.add((s, RDF.type, c))
-                    for ss in g.subjects(RDF.type, c):
-                        g.add((ss, RDF.type, c1))
+                for s in g.subjects(RDF.type, c1):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c1))
 
                 g.remove((c1, OWL.equivalentClass, c))
                 g.add((c1, RDFS.subClassOf, c))
@@ -472,36 +461,33 @@ def merge_target_classes(
 
             for c2 in g.objects(c, OWL.equivalentClass):
                 eq_targetClass.add(c2)
-                if materialize_types:
-                    for s in g.subjects(RDF.type, c2):
-                        eq_targetNodes.add(s)
-                        g.add((s, RDF.type, c))
-                    for ss in g.subjects(RDF.type, c):
-                        g.add((ss, RDF.type, c2))
+                for s in g.subjects(RDF.type, c2):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c2))
                 g.remove((c, OWL.equivalentClass, c2))
                 g.add((c2, RDFS.subClassOf, c))
                 g.add((c, RDFS.subClassOf, c2))
-
+                
             for c1 in g.subjects(OWL.sameAs, c):
                 eq_targetClass.add(c1)
-                if materialize_types:
-                    for s in g.subjects(RDF.type, c1):
-                        eq_targetNodes.add(s)
-                        g.add((s, RDF.type, c))
-                    for ss in g.subjects(RDF.type, c):
-                        g.add((ss, RDF.type, c1))
+                for s in g.subjects(RDF.type, c1):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c1))
                 g.remove((c1, OWL.sameAs, c))
                 g.add((c1, RDFS.subClassOf, c))
                 g.add((c, RDFS.subClassOf, c1))
-                
+
             for c2 in g.objects(c, OWL.sameAs):
                 eq_targetClass.add(c2)
-                if materialize_types:
-                    for s in g.subjects(RDF.type, c2):
-                        eq_targetNodes.add(s)
-                        g.add((s, RDF.type, c))
-                    for ss in g.subjects(RDF.type, c):
-                        g.add((ss, RDF.type, c2))
+                for s in g.subjects(RDF.type, c2):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c2))
                 g.remove((c, OWL.sameAs, c2))
                 g.add((c2, RDFS.subClassOf, c))
                 g.add((c, RDFS.subClassOf, c2))
@@ -745,7 +731,7 @@ def merged_graph(
     while (not all_targetClasses_merged(vg, target_classes)) or (not all_samePath_merged(vg, path_value)):
 
         t_m0 = time.perf_counter_ns()
-        merge_target_classes(vg, found_node_targets, same_nodes, target_classes, materialize_types=False)
+        merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
         t_m1 = time.perf_counter_ns()
 
         timing["tc_merge_only_ns"] += (t_m1 - t_m0)

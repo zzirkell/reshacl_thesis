@@ -1,16 +1,10 @@
-from pyshacl import validate
-
 from .errors import FusionRuntimeError
 from pyshacl.pytypes import GraphLike
 import rdflib
-import time
 from rdflib.namespace import OWL, RDF, RDFS, SH
-from rdflib import Graph
 from pyshacl.shapes_graph import ShapesGraph
 
-from tc_engine.engine_sparql import expand_target_classes_cached_sparql
-
-from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from pyshacl.monkey import rdflib_bool_patch, rdflib_bool_unpatch
 from pyshacl.rdfutil import (
@@ -36,6 +30,7 @@ if TYPE_CHECKING:
 import time
 from contextlib import contextmanager
 from typing import Dict
+from tc_engine.engine_virtuoso import export_work_graph_ttl
 
 def load_graph(data_graph: Union[GraphLike, str, bytes],
     shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
@@ -536,9 +531,8 @@ def merge_same_focus(g, same_nodes, focus,  target_nodes, shapes, shacl_graph):
             
             
             
-def merged_graph_no_tc_sparql(
+def merged_graph_virtuoso(
     data_graph: Union[GraphLike, str, bytes],
-    ontology: Graph,
     shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
     data_graph_format: Optional[str] = None,
     shacl_graph_format: Optional[str] = None,
@@ -552,7 +546,6 @@ def merged_graph_no_tc_sparql(
     # print("shape_g:",type(shape_g))
     
     vg = named_graphs[0]
-    timing: dict[str, int] = {}
     found_node_targets = set()
     target_classes = set()
     path_value = set()
@@ -611,16 +604,6 @@ def merged_graph_no_tc_sparql(
         same_set = set()
         same_nodes.update({f: same_set})
 
-    timing = {}
-
-    t_tc0 = time.perf_counter_ns()
-    shape_g, target_classes, _cache = expand_target_classes_cached_sparql(shape_g, ontology, target_classes)
-    t_tc1 = time.perf_counter_ns()
-
-    timing["tc_engine_only_ns"] = t_tc1 - t_tc0
-    timing["tc_engine_only_s"] = (t_tc1 - t_tc0) / 1e9
-    timing["tc_engine_target_classes_out"] = len(target_classes)
-
     target_domain_range(vg, found_node_targets, same_nodes, target_classes)
     
     for focus_node in found_node_targets:    
@@ -673,54 +656,4 @@ def merged_graph_no_tc_sparql(
     
     # 'print'("shape_g:",type(shape_g))
         
-    return vg, same_nodes, shape_g, timing # output_shapes
-         
-
-            
-            
-# Returns the intermediate graph resulting from the reasoning and its size
-def inter_graph(
-    data_graph: Union[GraphLike, str, bytes],
-    shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
-    data_graph_format: Optional[str] = None,
-    shacl_graph_format: Optional[str] = None,
-    ):
-    
-    import owlrl
-
-    from pyshacl.inference import CustomRDFSOWLRLSemantics, CustomRDFSSemantics
-        
-    shapes, named_graphs, shape_graph = load_graph(data_graph, shacl_graph, data_graph_format,shacl_graph_format)  
-    
-    inferencer = owlrl.DeductiveClosure(CustomRDFSOWLRLSemantics)
-    
-    g = named_graphs[0]
-    
-    inferencer.expand(g)
-    
-    result = len(g)
-    
-    return result, g
-
-def inter_graph_rdfs(
-    data_graph: Union[GraphLike, str, bytes],
-    shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
-    data_graph_format: Optional[str] = None,
-    shacl_graph_format: Optional[str] = None,
-    ):
-    
-    import owlrl
-
-    from pyshacl.inference import CustomRDFSOWLRLSemantics, CustomRDFSSemantics
-        
-    shapes, named_graphs, shape_graph = load_graph(data_graph, shacl_graph, data_graph_format,shacl_graph_format)  
-    
-    inferencer = owlrl.DeductiveClosure(CustomRDFSSemantics)
-    
-    g = named_graphs[0]
-    
-    inferencer.expand(g)
-    
-    result = len(g)
-    
-    return result, g 
+    return vg, same_nodes, shape_g # output_shapes

@@ -1,5 +1,3 @@
-from pyshacl import validate
-
 from .errors import FusionRuntimeError
 from pyshacl.pytypes import GraphLike
 import rdflib
@@ -10,7 +8,7 @@ from pyshacl.shapes_graph import ShapesGraph
 
 from tc_engine.engine_rdflib import expand_target_classes_cached
 
-from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from pyshacl.monkey import rdflib_bool_patch, rdflib_bool_unpatch
 from pyshacl.rdfutil import (
@@ -34,8 +32,6 @@ if TYPE_CHECKING:
     from pyshacl.shapes_graph import ShapesGraph
 
 import time
-from contextlib import contextmanager
-from typing import Dict
 
 def load_graph(data_graph: Union[GraphLike, str, bytes],
     shacl_graph: Optional[Union[GraphLike, str, bytes]] = None,
