@@ -8,7 +8,7 @@ from rdflib.namespace import OWL, RDF, RDFS, SH
 from rdflib import Graph
 from pyshacl.shapes_graph import ShapesGraph
 
-from tc_engine.engine_sparql import expand_target_classes_cached_sparql
+from tc_engine.engine_sparql import expand_target_classes_and_rewrite_shapes
 
 from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Set, Tuple, Union
 
@@ -614,7 +614,7 @@ def merged_graph_no_tc_sparql(
     timing = {}
 
     t_tc0 = time.perf_counter_ns()
-    shape_g, target_classes, _cache = expand_target_classes_cached_sparql(shape_g, ontology, target_classes)
+    shape_g, target_classes = expand_target_classes_and_rewrite_shapes(shape_g, target_classes)
     t_tc1 = time.perf_counter_ns()
 
     timing["tc_engine_only_ns"] = t_tc1 - t_tc0
