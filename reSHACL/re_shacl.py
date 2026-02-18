@@ -24,6 +24,12 @@ RDFS_PFX = 'http://www.w3.org/2000/01/rdf-schema#'
 RDFS = Namespace(RDFS_PFX)
 RDFS_subPropertyOf = RDFS.subPropertyOf
 
+def _deterministic_term_key(term):
+    return (term.__class__.__name__, str(term))
+
+def deterministic_name(names):
+    ordered = sorted(names, key=_deterministic_term_key)
+    return ordered[0] if ordered else None
 
 if TYPE_CHECKING:
     from pyshacl.shapes_graph import ShapesGraph
@@ -500,8 +506,19 @@ def merge_target_classes(
             same_nodes.update({new_node: same_set})
         
     found_node_targets.update(eq_targetNodes)
+    target_classes.update(get_subclasses(g, eq_targetClass))
     target_classes.update(eq_targetClass)   
     
+def get_subclasses(vg, target_classes):
+    found_subclasses = set()
+    for tc in target_classes:
+        subc = vg.transitive_subjects(RDFS_subClassOf, tc)
+        for subclass in subc:
+            if subclass == tc:
+                continue
+            found_subclasses.add(subclass)
+
+    return found_subclasses
             
         
 def merge_same_property(g, properties, found_node_targets, same_nodes, target_classes, shapes, target_property, shacl_graph):
@@ -718,7 +735,10 @@ def merged_graph(
 
     target_domain_range(vg, found_node_targets, same_nodes, target_classes)
     
-    for focus_node in found_node_targets:    
+    pending_focus_nodes = set(found_node_targets)
+    while pending_focus_nodes:
+        focus_node = deterministic_name(pending_focus_nodes)
+        pending_focus_nodes.remove(focus_node)  
   
         while not all_focus_merged(vg, focus_node, found_node_targets):
        
@@ -744,7 +764,10 @@ def merged_graph(
         merge_same_property(vg, path_value, found_node_targets, same_nodes, target_classes, shapes, target_property, shape_g)
         
         # merge same nodes
-        for focus_node in found_node_targets:    
+        pending_focus_nodes = set(found_node_targets)
+        while pending_focus_nodes:
+            focus_node = deterministic_name(pending_focus_nodes)
+            pending_focus_nodes.remove(focus_node)  
       
             while not all_focus_merged(vg, focus_node, found_node_targets):
           
