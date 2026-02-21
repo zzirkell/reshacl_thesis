@@ -79,7 +79,7 @@ def load_base_graphs(dataset_uri: str, shapes_graph_uri: str, ontology_uri: str)
     base_g = Graph()
     base_g.parse(dataset_uri)
     if ontology_uri:
-        base_g.parse(ontology_uri, format="turtle")
+        base_g.parse(ontology_uri, format="xml")
 
     base_sg = Graph()
     base_sg.parse(shapes_graph_uri)
@@ -87,7 +87,7 @@ def load_base_graphs(dataset_uri: str, shapes_graph_uri: str, ontology_uri: str)
 
     ont_g = Graph()
     if ontology_uri:
-        ont_g.parse(ontology_uri, format="turtle")
+        ont_g.parse(ontology_uri, format="xml")
 
     return base_g, base_sg, ont_g
 
@@ -240,7 +240,7 @@ def benchmark_method(
         # VALIDATE
         shapes.bind("dbo", DBO)
         t2 = time.perf_counter_ns()
-        #conform, v_g, v_t = validate(fused_graph1, shacl_graph=shapes, inference=inference_method)
+        conform, v_g, v_t = validate(fused_graph1, shacl_graph=shapes, inference=inference_method)
         t3 = time.perf_counter_ns()
         v_s = ns_to_s(t3 - t2)
 
@@ -255,7 +255,7 @@ def benchmark_method(
         valid_s.append(v_s)
         tc_s.append(tc_sec)
 
-        #last_conform, last_v_g, last_v_t = conform, v_g, v_t
+        last_conform, last_v_g, last_v_t = conform, v_g, v_t
 
         if verbose_iter:
             print(
@@ -285,9 +285,8 @@ def benchmark_method(
         ?s sh:result ?v
     }"""
 
-    #result = last_v_g.query(result_query)
-    #viol_count = len(result)
-    viol_count = 0
+    result = last_v_g.query(result_query)
+    viol_count = len(result)
 
     print(f'[{method_label}]=============================')
     print(f' Avg total: {m_total:.6f}s  Std: {sd_total:.6f}')
@@ -296,13 +295,13 @@ def benchmark_method(
     print(f' Avg TC:    {m_tc:.6f}s  Std: {sd_tc:.6f}')
     print(f' #Violation: {viol_count}')
 
-    # save reports
-    # check_directory_exists_otherwise_create(f"Outputs/{dataset_name}/violationGraph/")
-    # last_v_g.serialize(destination=f"Outputs/{dataset_name}/violationGraph/{method_label}_results.ttl")
+    
+    check_directory_exists_otherwise_create(f"Outputs/{dataset_name}/violationGraph/")
+    last_v_g.serialize(destination=f"Outputs/{dataset_name}/violationGraph/{method_label}_results.ttl")
 
-    # check_directory_exists_otherwise_create(f"Outputs/{dataset_name}/validationReports/")
-    # with open(f"Outputs/{dataset_name}/validationReports/{method_label}_results.txt", "w", encoding="utf-8") as f:
-    #     f.write(last_v_t)
+    check_directory_exists_otherwise_create(f"Outputs/{dataset_name}/validationReports/")
+    with open(f"Outputs/{dataset_name}/validationReports/{method_label}_results.txt", "w", encoding="utf-8") as f:
+        f.write(last_v_t)
 
     table.add_row([
         method_label,
@@ -340,17 +339,17 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
 
     print(f"***** START VALIDATION ON [{dataset_name}] *****")
 
-    # benchmark_method(
-    #     method_label="original",
-    #     method_id="reshacl",
-    #     dataset_name=dataset_name,
-    #     base_g=base_g,
-    #     base_sg=base_sg,
-    #     ont_g=ont_g,
-    #     inference_method="none",
-    #     runs=1,
-    #     verbose_iter=True,
-    # )
+    benchmark_method(
+        method_label="original",
+        method_id="reshacl",
+        dataset_name=dataset_name,
+        base_g=base_g,
+        base_sg=base_sg,
+        ont_g=ont_g,
+        inference_method="none",
+        runs=1,
+        verbose_iter=True,
+    )
 
     benchmark_method(
         method_label="RDFlib",
@@ -360,29 +359,29 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
         base_sg=base_sg,
         ont_g=ont_g,
         inference_method="none",
-        runs=1,
+        runs=3,
         verbose_iter=True,
     )
 
-    benchmark_method(
-        method_label="SPARQL",
-        method_id="engine_sparql",
-        dataset_name=dataset_name,
-        base_g=base_g,
-        base_sg=base_sg,
-        ont_g=ont_g,
-        inference_method="none",
-        runs=1,
-        verbose_iter=True,
-    )
+    # benchmark_method(
+    #     method_label="SPARQL",
+    #     method_id="engine_sparql",
+    #     dataset_name=dataset_name,
+    #     base_g=base_g,
+    #     base_sg=base_sg,
+    #     ont_g=ont_g,
+    #     inference_method="none",
+    #     runs=1,
+    #     verbose_iter=True,
+    # )
 
 
 if __name__ == "__main__":
     run_experiment(
         dataset_name="EnDe-Lite50",
-        dataset_uri="source/Datasets/EnDe-Lite50(without_Ontology).ttl",
-        shapes_graph_uri="source/ShapesGraphs/Shape_30.ttl",
-        ontology_uri="source/Ontologies/dbpedia_ontology_inflated.ttl",
+        dataset_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\Datasets\\dbpedia_safe30_d1_s5_small.ttl",
+        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30.ttl",
+        ontology_uri="reshacl_thesis/source/Ontologies/dbpedia_ontology.owl",
     )
 
     # run_experiment(

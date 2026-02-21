@@ -412,6 +412,74 @@ def all_subProperties_merged(g, p):
     if len(m1)!= 0:
         return False
     return True
+
+def all_targetClasses_merged(g, target_classes):
+    for c in target_classes:
+        m1 = [s for s in g.subjects(OWL.equivalentClass, c)]
+        m2 = [s for s in g.objects(c, OWL.equivalentClass)]
+        m3 = [s for s in g.subjects(OWL.sameAs, c)]
+        m4 = [s for s in g.objects(c, OWL.sameAs)]
+        if len(m1)!= 0 or len(m2)!= 0 or len(m3)!= 0 or len(m4)!= 0:
+            return False
+    return True
+
+def sameClasses_merged(g, target_class):
+    m1 = [s for s in g.subjects(OWL.equivalentClass, target_class)]
+    m2 = [s for s in g.objects(target_class, OWL.equivalentClass)]
+    m3 = [s for s in g.subjects(OWL.sameAs, target_class)]
+    m4 = [s for s in g.objects(target_class, OWL.sameAs)]
+    if len(m1)!= 0 or len(m2)!= 0 or len(m3)!= 0 or len(m4)!= 0:
+        return False
+    return True
+
+def merge_target_classes(
+    g,
+    found_node_targets,
+    same_nodes,
+    target_classes,
+):
+
+    eq_targetClass = set()
+    eq_targetNodes = set()
+
+    for c in target_classes:
+        while not sameClasses_merged(g, c):
+            for c1 in g.subjects(OWL.equivalentClass, c):
+                eq_targetClass.add(c1)
+                for s in g.subjects(RDF.type, c1):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c1))
+
+                g.remove((c1, OWL.equivalentClass, c))
+
+            for c2 in g.objects(c, OWL.equivalentClass):
+                eq_targetClass.add(c2)
+                for s in g.subjects(RDF.type, c2):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c2))
+                g.remove((c, OWL.equivalentClass, c2))
+                
+            for c1 in g.subjects(OWL.sameAs, c):
+                eq_targetClass.add(c1)
+                for s in g.subjects(RDF.type, c1):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c1))
+                g.remove((c1, OWL.sameAs, c))
+
+            for c2 in g.objects(c, OWL.sameAs):
+                eq_targetClass.add(c2)
+                for s in g.subjects(RDF.type, c2):
+                    eq_targetNodes.add(s)
+                    g.add((s, RDF.type, c))
+                for ss in g.subjects(RDF.type, c):
+                    g.add((ss, RDF.type, c2))
+                g.remove((c, OWL.sameAs, c2))
            
         
 def merge_same_property(g, properties, found_node_targets, same_nodes, target_classes, shapes, target_property, shacl_graph):
@@ -631,7 +699,8 @@ def merged_graph_no_tc(
        
             merge_same_focus(vg, same_nodes, focus_node, target_nodes, shapes, shape_g)  
             #check_com_dw(vg, target_classes)
-    while (not all_samePath_merged(vg, path_value)):
+    while (not all_targetClasses_merged(vg, target_classes)) or (not all_samePath_merged(vg, path_value)):
+        merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
         target_range(vg, found_node_targets, same_nodes, target_classes)
         
         # merge same properties 
