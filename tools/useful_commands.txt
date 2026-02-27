@@ -1,0 +1,8 @@
+python rank_dbpedia_shapes.py --shapes "C:\Users\mazek.ZZIRKELL\reshacl_thesis\source\ShapesGraphs\DBpedia_SHACL.ttl" --ontology "C:\Users\mazek.ZZIRKELL\reshacl_thesis\source\Ontologies\dbpedia_ontology.owl" --top-k 30 --score-mode eq --inst-transform sqrt --cap-entities 50000 --min-entities 300 --max-entities 10000 --max-closure 60 --max-layers 10 --max-props 55 --avoid http://dbpedia.org/ontology/PopulatedPlace http://dbpedia.org/ontology/Road http://dbpedia.org/ontology/Organisation http://dbpedia.org/ontology/Athlete http://dbpedia.org/ontology/Building --subset-out "DBpedia_SHACL_top30_safe.ttl" --csv-out "DBpedia_SHACL_ranking_safe.csv" --ontology-cache "ont_index_unfiltered.pkl"
+
+
+python YAGO_subset_generator_local.py --shacl-file "C:\Users\mazek.ZZIRKELL\reshacl_thesis\source\ShapesGraphs\DBpedia_SHACL_selected30.ttl" --endpoint official --small 10 --medium 5 --large 5 --max-depth 1 --workers 1 --timeout 60 --max-retries 3 --output-dir ".\output_dbpedia_safe" --output-prefix "dbpedia_safe30_d1_s5"
+
+python extract_selected_30_dbpedia_shapes.py --in "C:\Users\mazek.ZZIRKELL\reshacl_thesis\source\ShapesGraphs\DBpedia_SHACL.ttl" --out "C:\Users\mazek.ZZIRKELL\reshacl_thesis\source\ShapesGraphs\DBpedia_SHACL_selected30.ttl"
+
+python nt_to_ttl.py "C:\Users\mazek.ZZIRKELL\reshacl_thesis\output_dbpedia_safe\dbpedia_selected30_d1_s5_small.nt" "C:\Users\mazek.ZZIRKELL\reshacl_thesis\output_dbpedia_safe\dbpedia_selected30_d1_s5_small.ttl"

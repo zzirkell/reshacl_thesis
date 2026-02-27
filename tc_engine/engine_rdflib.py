@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 
 from rdflib import Graph, Namespace, URIRef
 from rdflib.namespace import OWL, RDFS, RDF
@@ -146,39 +147,82 @@ def closure_to_dot(
 
 #here you can output the png of the shape expanded with new target classes
 # def main() -> None:
-#     ontology_path = "reshacl_thesis/source/Ontologies/dbpedia_ontology_inflated.ttl"
-#     shapes_path = "reshacl_thesis/source/ShapesGraphs/Shape_30.ttl"
+#     ontology_path = "source/Ontologies/dbpedia_ontology.owl"
+#     shapes_path ="source/ShapesGraphs/DBpedia_SHACL.ttl"
 
 #     ontology_graph = Graph()
-#     ontology_graph.parse(ontology_path, format="turtle")
+#     ontology_graph.parse(ontology_path, format="xml")
 
 #     shapes_graph = Graph()
 #     shapes_graph.parse(shapes_path, format="turtle")
 
-#     # single pass: get seed target classes (you said you already have them; this is the minimal way)
 #     SH = Namespace("http://www.w3.org/ns/shacl#")
 #     seed_target_classes: set[URIRef] = {
 #         cls for _, _, cls in shapes_graph.triples((None, SH.targetClass, None))
 #         if isinstance(cls, URIRef)
 #     }
-
+#     t_tc0 = time.perf_counter_ns()
+    
 #     _, _, closure_cache = expand_target_classes_cached(
 #         shapes_graph=shapes_graph,
 #         ontology_graph=ontology_graph,
 #         seed_target_classes=seed_target_classes,
 #     )
+#     t_tc1 = time.perf_counter_ns()
+#     print(f"TC expansion (cached) took {(t_tc1 - t_tc0) / 1e9:.2f} seconds")
 
-#     dot = closure_to_dot(ontology_graph, closure_cache)
+#     # dot = closure_to_dot(ontology_graph, closure_cache)
 
-#     dot_path = Path("target_class_closure.dot")
-#     png_path = Path("target_class_closure.png")
-#     dot_path.write_text(dot, encoding="utf-8")
+#     # dot_path = Path("target_class_closure.dot")
+#     # png_path = Path("target_class_closure.png")
+#     # dot_path.write_text(dot, encoding="utf-8")
 
-#     subprocess.run(["dot", "-Tpng", str(dot_path), "-o", str(png_path)], check=True)
+#     # subprocess.run(["dot", "-Tpng", str(dot_path), "-o", str(png_path)], check=True)
 
-#     print(f"✔ wrote {dot_path}")
-#     print(f"✔ wrote {png_path}")
+#     # print(f"✔ wrote {dot_path}")
+#     # print(f"✔ wrote {png_path}")
 
 
-# if __name__ == "__main__":
-#     main()
+def main() -> None:
+    ontology_path = "source/Ontologies/dbpedia_ontology.owl"
+    shapes_path = "source/ShapesGraphs/DBpedia_SHACL.ttl"
+
+    ontology_graph = Graph()
+    ontology_graph.parse(ontology_path, format="xml")
+
+    shapes_graph = Graph()
+    shapes_graph.parse(shapes_path, format="turtle")
+
+    SH = Namespace("http://www.w3.org/ns/shacl#")
+
+    # BEFORE: distinct target classes in the input shapes graph
+    seed_target_classes: set[URIRef] = {
+        cls for _, _, cls in shapes_graph.triples((None, SH.targetClass, None))
+        if isinstance(cls, URIRef)
+    }
+    before_count = len(seed_target_classes)
+
+    t_tc0 = time.perf_counter_ns()
+
+    rewritten, expanded_global, closure_cache = expand_target_classes_cached(
+        shapes_graph=shapes_graph,
+        ontology_graph=ontology_graph,
+        seed_target_classes=seed_target_classes,
+    )
+
+    t_tc1 = time.perf_counter_ns()
+
+    # AFTER: distinct target classes in the rewritten shapes graph
+    expanded_target_classes: set[URIRef] = {
+        cls for _, _, cls in rewritten.triples((None, SH.targetClass, None))
+        if isinstance(cls, URIRef)
+    }
+    after_count = len(expanded_target_classes)
+
+    print(f"Target classes BEFORE expansion: {before_count}")
+    print(f"Target classes AFTER  expansion: {after_count} (+{after_count - before_count})")
+    print(f"Global expanded class set size (union of closures): {len(expanded_global)}")
+    print(f"TC expansion (cached) took {(t_tc1 - t_tc0) / 1e9:.2f} seconds")
+
+if __name__ == "__main__":
+    main()

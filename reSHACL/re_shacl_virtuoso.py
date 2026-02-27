@@ -484,7 +484,6 @@ def merge_same_property(g, properties, found_node_targets, same_nodes, target_cl
     for focus_property in properties:
 
         while not all_subProperties_merged(g, focus_property):
-            #print("Merge subProperties")
             for sub_p in g.subjects(RDFS.subPropertyOf, focus_property):   
                 if (focus_property, RDFS.subPropertyOf, sub_p) in g: #scm-eqp2
                     g.add((focus_property, OWL.sameAs, sub_p))
@@ -688,8 +687,7 @@ def merged_graph_virtuoso(
        
             merge_same_focus(vg, same_nodes, focus_node, target_nodes, shapes, shape_g)  
             #check_com_dw(vg, target_classes)
-    while (not all_targetClasses_merged(vg, target_classes)) or (not all_samePath_merged(vg, path_value)):
-        merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
+    while (not all_samePath_merged(vg, path_value)):
         target_range(vg, found_node_targets, same_nodes, target_classes)
         
         # merge same properties 

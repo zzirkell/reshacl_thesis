@@ -8,7 +8,7 @@ from pathlib import Path
 # --------------------
 ENDPOINT = "http://localhost:8890/sparql"
 
-G_ONTO   = "http://example.org/ontology_new"
+G_ONTO   = "http://example.org/ontology"
 G_SHAPES = "http://example.org/shapes"
 G_WORK   = "http://example.org/shapes_work"
 
@@ -165,7 +165,7 @@ def export_work_graph_ttl(out_path: str = OUT_TTL, method: str = "default") -> P
         data={"query": PREFIXES + construct},
         headers={"Accept": "text/turtle"},
         timeout=300,
-    )
+    ) 
     p = Path(out_path)
     
     p.write_bytes(r.content)
@@ -174,22 +174,24 @@ def export_work_graph_ttl(out_path: str = OUT_TTL, method: str = "default") -> P
 # --------------------
 # main
 # --------------------
-def main():
+# def main():
     
 
-    # Create working graph
-    reset_work_graph()
-    copy_shapes_to_work()
-    print("OK: shapes copied to shapes_work and still SHACL-safe")
+#     # Create working graph
+#     reset_work_graph()
+#     copy_shapes_to_work()
+#     print("OK: shapes copied to shapes_work and still SHACL-safe")
+#     for i in range (2):
+#       reset_work_graph()
+#       copy_shapes_to_work()
+#       # Expand
+#       start = datetime.now()
+#       # Export
+#       p = export_work_graph_ttl(OUT_TTL)
+#       print("Wrote:", p.resolve(), "bytes:", p.stat().st_size)
 
-    # Expand
-    start = datetime.now()
-    # Export
-    p = export_work_graph_ttl(OUT_TTL)
-    print("Wrote:", p.resolve(), "bytes:", p.stat().st_size)
+#       elapsed = datetime.now() - start
+#       print("Done. Elapsed:", elapsed)
 
-    elapsed = datetime.now() - start
-    print("Done. Elapsed:", elapsed)
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

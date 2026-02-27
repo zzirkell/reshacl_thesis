@@ -412,7 +412,7 @@ def all_subProperties_merged(g, p):
     if len(m1)!= 0:
         return False
     return True
-
+    
 def all_targetClasses_merged(g, target_classes):
     for c in target_classes:
         m1 = [s for s in g.subjects(OWL.equivalentClass, c)]
@@ -699,8 +699,7 @@ def merged_graph_no_tc(
        
             merge_same_focus(vg, same_nodes, focus_node, target_nodes, shapes, shape_g)  
             #check_com_dw(vg, target_classes)
-    while (not all_targetClasses_merged(vg, target_classes)) or (not all_samePath_merged(vg, path_value)):
-        merge_target_classes(vg, found_node_targets, same_nodes, target_classes)
+    while (not all_samePath_merged(vg, path_value)):
         target_range(vg, found_node_targets, same_nodes, target_classes)
         
         # merge same properties 

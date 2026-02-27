@@ -1,11 +1,19 @@
-import sys
-from rdflib import Graph
+from rdflib import Graph, URIRef, Literal, BNode
 
-nt_in = sys.argv[1]
-ttl_out = sys.argv[2]
+input_file = r"C:\Users\mazek.ZZIRKELL\reshacl_thesis\tools\output_dbp\dbp_closure_test_small.nt"
+output_file = r"C:\Users\mazek.ZZIRKELL\reshacl_thesis\tools\output_dbp\smalltest.ttl"
 
 g = Graph()
-g.parse(nt_in, format="nt")
-g.serialize(ttl_out, format="turtle")
 
-print("Wrote", ttl_out, "triples:", len(g))
+with open(input_file, "r", encoding="utf-8") as f:
+    for i, line in enumerate(f, 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        try:
+            g.parse(data=line, format="nt")
+        except Exception as e:
+            print(f"Skipped line {i}: {e}")
+
+g.serialize(destination=output_file, format="turtle")
+print("Conversion complete!")

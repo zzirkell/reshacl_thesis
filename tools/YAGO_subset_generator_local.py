@@ -164,6 +164,61 @@ entity_cache = {}
 cache_lock = threading.Lock()
 MAX_CACHE_SIZE = 50000  # Limit cache to 50K entities to prevent OOM
 
+OWL_EQ = "http://www.w3.org/2002/07/owl#equivalentClass"
+OWL_SAME = "http://www.w3.org/2002/07/owl#sameAs"
+RDFS_SUB = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+
+DBO = "http://dbpedia.org/ontology/"
+
+def fetch_eq_same(classes):
+    vals = " ".join(f"<{c}>" for c in classes)
+    q = f"""
+    SELECT DISTINCT ?x WHERE {{
+      VALUES ?c {{ {vals} }}
+      {{
+        ?c <{OWL_EQ}> ?x .
+      }} UNION {{
+        ?x <{OWL_EQ}> ?c .
+      }} UNION {{
+        ?c <{OWL_SAME}> ?x .
+      }} UNION {{
+        ?x <{OWL_SAME}> ?c .
+      }}
+      FILTER(isIRI(?x))
+      FILTER(STRSTARTS(STR(?x), "{DBO}"))   # dbo-only to avoid multilingual explosion
+    }}
+    """
+    res = query_with_retry(q)
+    if not res: return set()
+    return {b["x"]["value"] for b in res["results"]["bindings"]}
+
+def fetch_subclasses(classes):
+    vals = " ".join(f"<{c}>" for c in classes)
+    q = f"""
+    SELECT DISTINCT ?sub WHERE {{
+      VALUES ?c {{ {vals} }}
+      ?sub <{RDFS_SUB}> ?c .
+      FILTER(isIRI(?sub))
+      FILTER(STRSTARTS(STR(?sub), "{DBO}"))
+    }}
+    """
+    res = query_with_retry(q)
+    if not res: return set()
+    return {b["sub"]["value"] for b in res["results"]["bindings"]}
+
+def compute_closure(seed_class: str, max_layers: int = 2) -> list[str]:
+    seen = {seed_class}
+    frontier = {seed_class}
+    for _ in range(max_layers):
+        eq = fetch_eq_same(frontier)
+        sub = fetch_subclasses(frontier)
+        new = (eq | sub) - seen
+        if not new:
+            break
+        seen |= new
+        frontier = new
+    return sorted(seen)
+
 # Query neighbors of an entity via SPARQL
 def get_neighbors(entity):
     # Check cache (thread-safe)
@@ -173,6 +228,7 @@ def get_neighbors(entity):
     
     query = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX dbo: <http://dbpedia.org/ontology/>
     PREFIX schema: <http://schema.org/>
         SELECT ?p ?o WHERE {{
         <{entity}> ?p ?o .
@@ -184,7 +240,7 @@ def get_neighbors(entity):
             dbo:wikiPageID,
             dbo:wikiPageRevisionID
         ))
-        }}  LIMIT 100
+        }}  LIMIT 200
     """
     
     results = query_with_retry(query)
@@ -293,37 +349,61 @@ def bfs_extract_subgraph_streaming(seed_entities, output_file, max_depth=2):
     return triple_count
 
 # Process a single target class (streaming version)
-def process_target_class_streaming(target_class, target_total, downloaded_count, max_depth, worker_id, output_file):
+def process_target_class_streaming(
+    target_class,
+    target_total,
+    downloaded_count,
+    max_depth,
+    worker_id,
+    output_file,
+    closure_layers=2,
+):
     """
-    Process a single target class and stream triples to file
-    :param target_class: Target class to process
-    :param target_total: Total number of entities to retrieve
-    :param downloaded_count: Number already downloaded
-    :param max_depth: Maximum BFS depth
-    :param worker_id: Worker identifier for logging
-    :param output_file: File path to write triples
-    :return: Tuple of (triple_count, new_entities_count)
+    Process one target class:
+      - compute closure(target_class) via eq/sameAs + subclasses (downward)
+      - sample instances from all classes in the closure
+      - BFS-expand from sampled seeds and stream to file
     """
     increment = target_total - downloaded_count
-    
     if increment <= 0:
         print(f"[Worker {worker_id}] {target_class}: Target reached, skipping")
         return 0, 0
-    
+
     print(f"[Worker {worker_id}] Processing class: {target_class}")
     print(f"[Worker {worker_id}]   Already have {downloaded_count}, need {increment} more")
-    
-    # Incremental query: get new entities starting from offset
-    new_entities = get_sample_entities(target_class, increment, offset=downloaded_count)
-    print(f"[Worker {worker_id}]   Actually retrieved {len(new_entities)} new instances")
-    
-    if new_entities:
-        # BFS expansion - stream triples directly to file
-        triple_count = bfs_extract_subgraph_streaming(new_entities, output_file, max_depth=max_depth)
-        return triple_count, len(new_entities)
-    else:
-        print(f"[Worker {worker_id}]   ⚠️  No new instances retrieved")
+
+    # 1) compute closure classes (dbo-only restriction happens in your compute_closure())
+    closure = compute_closure(str(target_class), max_layers=closure_layers)
+    if not closure:
+        print(f"[Worker {worker_id}]   ⚠️ closure is empty, skipping")
         return 0, 0
+
+    # 2) distribute increment across closure classes
+    per_c = max(1, increment // len(closure))
+
+    new_entities = []
+    for c in closure:
+        # offset=0 is fine here; we just want enough seeds quickly
+        ents = get_sample_entities(c, per_c, offset=0)
+        new_entities.extend(ents)
+
+        if len(new_entities) >= increment:
+            break
+
+    # dedupe + cap
+    new_entities = list(dict.fromkeys(new_entities))[:increment]
+
+    print(
+        f"[Worker {worker_id}]   closure_size={len(closure)} closure_layers={closure_layers} "
+        f"per_c={per_c} seeds={len(new_entities)}"
+    )
+
+    if not new_entities:
+        print(f"[Worker {worker_id}]   ⚠️ No instances retrieved from closure")
+        return 0, 0
+
+    triple_count = bfs_extract_subgraph_streaming(new_entities, output_file, max_depth=max_depth)
+    return triple_count, len(new_entities)
 
 # Initialize final subgraph
 print(f"\n{'='*60}")
@@ -405,7 +485,7 @@ for size_config in sizes:
             # Create worker-specific file
             worker_file = os.path.join(args.output_dir, f".{args.output_prefix}_{size_name}_worker_{worker_id}.nt.tmp")
             worker_files[worker_id] = worker_file
-            
+            closure_layers = 1 if size_name in ("small", "medium") else 2
             future = executor.submit(
                 process_target_class_streaming,
                 target_class,
