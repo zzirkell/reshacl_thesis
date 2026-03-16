@@ -8,7 +8,7 @@ For each dataset, it:
 
 1. loads the data graph
 2. loads the ontology into the data graph
-3. loads the shapes graph
+3. loads the shapes graph (`DBpedia_SHACL_selected30_no_shin.ttl` represents shapes without in singleton lists, use `DBpedia_SHACL_selected30.ttl` for the general pipeline usage)
 4. builds the validation graph with the selected method
 5. validates with `pyshacl`
 6. stores runtime statistics, validation reports, and violation graphs
