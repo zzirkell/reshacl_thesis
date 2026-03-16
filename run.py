@@ -120,8 +120,6 @@ def run_engine_sparql_build(g: Graph) -> tuple[Graph, dict, Graph]:
     reset_work_graph()
     copy_shapes_to_work()
     t_tc0 = time.perf_counter_ns()
-    #for one query method
-    # exported_path = export_work_graph_ttl(OUT_TTL, method="updated_shapes_graph")
     exported_path = export_work_graph_ttl(OUT_TTL)
     t_tc1 = time.perf_counter_ns()
     tc_ns = t_tc1 - t_tc0
@@ -332,10 +330,10 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
     base_g, base_sg, ont_g = load_base_graphs(dataset_uri, shapes_graph_uri, ontology_uri)
 
     print("***** Preheating *****")
-    # for _ in range(5):
-    #     g0 = clone_graph(base_g)
-    #     sg0 = clone_graph(base_sg)
-    #     validate(g0, shacl_graph=sg0, inference="none")
+    for _ in range(5):
+        g0 = clone_graph(base_g)
+        sg0 = clone_graph(base_sg)
+        validate(g0, shacl_graph=sg0, inference="none")
 
     print(f"***** START VALIDATION ON [{dataset_name}] *****")
 
@@ -363,30 +361,30 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
         verbose_iter=True,
     )
 
-    # benchmark_method(
-    #     method_label="original",
-    #     method_id="reshacl",
-    #     dataset_name=dataset_name,
-    #     base_g=base_g,
-    #     base_sg=base_sg,
-    #     ont_g=ont_g,
-    #     inference_method="none",
-    #     runs=5,
-    #     verbose_iter=True,
-    # )
+    benchmark_method(
+        method_label="original",
+        method_id="reshacl",
+        dataset_name=dataset_name,
+        base_g=base_g,
+        base_sg=base_sg,
+        ont_g=ont_g,
+        inference_method="none",
+        runs=5,
+        verbose_iter=True,
+    )
 
 
-    # benchmark_method(
-    #     method_label="SPARQL",
-    #     method_id="engine_sparql",
-    #     dataset_name=dataset_name,
-    #     base_g=base_g,
-    #     base_sg=base_sg,
-    #     ont_g=ont_g,
-    #     inference_method="none",
-    #     runs=5,
-    #     verbose_iter=True,
-    # )
+    benchmark_method(
+        method_label="SPARQL",
+        method_id="engine_sparql",
+        dataset_name=dataset_name,
+        base_g=base_g,
+        base_sg=base_sg,
+        ont_g=ont_g,
+        inference_method="none",
+        runs=5,
+        verbose_iter=True,
+    )
 
 
 if __name__ == "__main__":
