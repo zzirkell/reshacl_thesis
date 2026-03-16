@@ -339,30 +339,6 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
 
     print(f"***** START VALIDATION ON [{dataset_name}] *****")
 
-    # benchmark_method(
-    #     method_label="original",
-    #     method_id="reshacl",
-    #     dataset_name=dataset_name,
-    #     base_g=base_g,
-    #     base_sg=base_sg,
-    #     ont_g=ont_g,
-    #     inference_method="none",
-    #     runs=1,
-    #     verbose_iter=True,
-    # )
-
-    benchmark_method(
-        method_label="RDFlib",
-        method_id="engine_rdflib",
-        dataset_name=dataset_name,
-        base_g=base_g,
-        base_sg=base_sg,
-        ont_g=ont_g,
-        inference_method="none",
-        runs=5,
-        verbose_iter=True,
-    )
-
     benchmark_method(
         method_label="original",
         method_id="reshacl",
@@ -371,42 +347,66 @@ def run_experiment(dataset_name, dataset_uri, shapes_graph_uri, ontology_uri):
         base_sg=base_sg,
         ont_g=ont_g,
         inference_method="none",
-        runs=5,
+        runs=2,
         verbose_iter=True,
     )
 
-
     benchmark_method(
-        method_label="SPARQL",
-        method_id="engine_sparql",
+        method_label="rdflib",
+        method_id="engine_rdflib",
         dataset_name=dataset_name,
         base_g=base_g,
         base_sg=base_sg,
         ont_g=ont_g,
         inference_method="none",
-        runs=5,
+        runs=2,
         verbose_iter=True,
     )
+
+    # benchmark_method(
+    #     method_label="original",
+    #     method_id="reshacl",
+    #     dataset_name=dataset_name,
+    #     base_g=base_g,
+    #     base_sg=base_sg,
+    #     ont_g=ont_g,
+    #     inference_method="none",
+    #     runs=5,
+    #     verbose_iter=True,
+    # )
+
+
+    # benchmark_method(
+    #     method_label="SPARQL",
+    #     method_id="engine_sparql",
+    #     dataset_name=dataset_name,
+    #     base_g=base_g,
+    #     base_sg=base_sg,
+    #     ont_g=ont_g,
+    #     inference_method="none",
+    #     runs=5,
+    #     verbose_iter=True,
+    # )
 
 
 if __name__ == "__main__":
     run_experiment(
         dataset_name="small",
         dataset_uri="source/Datasets/small.ttl",
-        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30.ttl",
+        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30_no_shin.ttl",
         ontology_uri="source/Ontologies/dbpedia_ontology.owl",
     )
 
     run_experiment(
         dataset_name="medium",
         dataset_uri="source/Datasets/medium.ttl",
-        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30.ttl",
+        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30_no_shin.ttl",
         ontology_uri="reshacl_thesis/source/Ontologies/dbpedia_ontology.owl",
     )
 
     run_experiment(
         dataset_name="large",
         dataset_uri="source/Datasets/large.ttl",
-        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30.ttl",
+        shapes_graph_uri="C:\\Users\\mazek.ZZIRKELL\\reshacl_thesis\\source\\ShapesGraphs\\DBpedia_SHACL_selected30_no_shin.ttl",
         ontology_uri="reshacl_thesis/source/Ontologies/dbpedia_ontology.owl",
     )

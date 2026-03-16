@@ -16,6 +16,7 @@ OUT_TTL  = "source/ShapesGraphs/expanded_shapes.ttl"
 
 PREFIXES = """\
 PREFIX sh:   <http://www.w3.org/ns/shacl#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 """
@@ -152,11 +153,20 @@ def export_work_graph_ttl(out_path: str = OUT_TTL, method: str = "default") -> P
     expand_to_fixpoint()
     construct = f"""
     CONSTRUCT {{
-      ?s ?p ?o .
+      ?shape ?p ?o .
+      ?prop ?pp ?po .
     }}
     WHERE {{
       GRAPH <{G_WORK}> {{
-        ?s ?p ?o .
+
+        ?shape a sh:NodeShape .
+        ?shape ?p ?o .
+
+        OPTIONAL {{
+            ?shape sh:property ?prop .
+            ?prop ?pp ?po .
+        }}
+        FILTER (?p != <http://rdfs.org/ns/void#entities>)
       }}
     }}
     """
@@ -169,29 +179,30 @@ def export_work_graph_ttl(out_path: str = OUT_TTL, method: str = "default") -> P
     p = Path(out_path)
     
     p.write_bytes(r.content)
+    print("Content-Type:", r.headers.get("Content-Type"))
     return p
 
 # --------------------
 # main
 # --------------------
-# def main():
+def main():
     
 
-#     # Create working graph
-#     reset_work_graph()
-#     copy_shapes_to_work()
-#     print("OK: shapes copied to shapes_work and still SHACL-safe")
-#     for i in range (2):
-#       reset_work_graph()
-#       copy_shapes_to_work()
-#       # Expand
-#       start = datetime.now()
-#       # Export
-#       p = export_work_graph_ttl(OUT_TTL)
-#       print("Wrote:", p.resolve(), "bytes:", p.stat().st_size)
+    # Create working graph
+    reset_work_graph()
+    copy_shapes_to_work()
+    print("OK: shapes copied to shapes_work and still SHACL-safe")
+    for i in range (5):
+      reset_work_graph()
+      copy_shapes_to_work()
+      # Expand
+      start = datetime.now()
+      # Export
+      p = export_work_graph_ttl(OUT_TTL)
+      print("Wrote:", p.resolve(), "bytes:", p.stat().st_size)
 
-#       elapsed = datetime.now() - start
-#       print("Done. Elapsed:", elapsed)
+      elapsed = datetime.now() - start
+      print("Done. Elapsed:", elapsed)
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

@@ -185,7 +185,7 @@ def closure_to_dot(
 
 def main() -> None:
     ontology_path = "source/Ontologies/dbpedia_ontology.owl"
-    shapes_path = "source/ShapesGraphs/DBpedia_SHACL.ttl"
+    shapes_path = "source/ShapesGraphs/DBpedia_SHACL_selected30.ttl"
 
     ontology_graph = Graph()
     ontology_graph.parse(ontology_path, format="xml")
@@ -223,6 +223,16 @@ def main() -> None:
     print(f"Target classes AFTER  expansion: {after_count} (+{after_count - before_count})")
     print(f"Global expanded class set size (union of closures): {len(expanded_global)}")
     print(f"TC expansion (cached) took {(t_tc1 - t_tc0) / 1e9:.2f} seconds")
+    dot = closure_to_dot(ontology_graph, closure_cache)
+
+    dot_path = Path("target_class_closure.dot")
+    png_path = Path("target_class_closure.png")
+    dot_path.write_text(dot, encoding="utf-8")
+
+    subprocess.run(["dot", "-Tpng", str(dot_path), "-o", str(png_path)], check=True)
+
+    print(f"✔ wrote {dot_path}")
+    print(f"✔ wrote {png_path}")
 
 if __name__ == "__main__":
     main()
